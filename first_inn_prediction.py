@@ -1,14 +1,15 @@
+# importing essional libraries
 import pandas as pd
 import numpy as np 
 from datetime import datetime
 import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.linear_model import LinearRegression
+linear_regressor = LinearRegression()
 
 
 ipl_df = pd.read_csv('./ipl.csv')
-# print(ipl_df)
 
-# print(ipl_df.dtypes)
 
 ''' data cleaning ''' 
 # removing unwanted columns
@@ -19,20 +20,22 @@ def remove_unwanted_cols(ipl_df):
     return(ipl_df)
 # print(df.shape)
 
+'''uncomment to  check the name of the teams'''
 # print(df['bat_team'].unique())
 # print(df['bowl_team'].unique())
 
 def containg_consisting_team(df):
-    consisting_team = ['Kolkata Knight Riders','Chennai Super Kings','Rajasthan Royals',
+  '''droping teams which are no longer exist'''
+  consisting_team = ['Kolkata Knight Riders','Chennai Super Kings','Rajasthan Royals',
                     'Mumbai Indians' ,'Kings XI Punjab', 'Royal Challengers Bangalore' ,
                     'Delhi Daredevils','Sunrisers Hyderabad' ]
-    df = df[(df['bat_team'].isin(consisting_team)) & (df['bowl_team'].isin(consisting_team))]
-    return(df)
+  df = df[(df['bat_team'].isin(consisting_team)) & (df['bowl_team'].isin(consisting_team))]
+  return(df)
 
 # print(consistent_df['ball_team'].unique())
 # print(consistent_df['bat_team'].unique())
 
-# removing first 5 overs because only after that we can predict
+# removing first 5 overs because only after that we can predict the total score
 
 def remove_5_overs(consistent_df):
     consistent_df=consistent_df[consistent_df['overs']>=5.0]
@@ -105,10 +108,6 @@ def linear_regressor_model(x_train,y_train,x_test):
     y_pred = linear_regressor.predict(x_test)
     return(y_pred)
 
-
-
-
-
 # model Evaluation --------> Linear regression 
 def model_evaluation(y_test,y_pred):
     from sklearn.metrics import mean_absolute_error as mae,mean_squared_error as mse,accuracy_score
@@ -117,9 +116,8 @@ def model_evaluation(y_test,y_pred):
     print("Mean Squared Error (MSE): {}".format(mse(y_test, y_pred)))
     print("Root Mean Squared Error (RMSE): {}".format(np.sqrt(mse(y_test, y_pred))))
 
-# model_evaluation(y_test,y_pred)
 
-# decidion tree
+# Decidion tree
 def decision_tree(x_train,y_train,x_test):
     from sklearn.tree import DecisionTreeRegressor
     decision_regressor = DecisionTreeRegressor()
@@ -152,16 +150,16 @@ def model_evaluation_rf(y_test,y_pred_rf):
     print("Mean Squared Error (MSE): {}".format(mse(y_test, y_pred_rf)))
     print("Root Mean Squared Error (RMSE): {}".format(np.sqrt(mse(y_test, y_pred_rf))))
 
+
 # AdaBoost Model using Linear Regression as the base learner
 def adaboost(x_train,y_train,x_test):
-    from sklearn.linear_model import LinearRegression
-    linear_regressor = LinearRegression()
     from sklearn.ensemble import AdaBoostRegressor
     adb_regressor = AdaBoostRegressor(base_estimator=linear_regressor, n_estimators=100)
     adb_regressor.fit(x_train, y_train)
     # Predicting results
     y_pred_adb = adb_regressor.predict(x_test)
     return(y_pred_adb)
+
 
 # model Evaluation --------> AdaBoost Model using Linear Regression 
 def model_evaluation_adb(y_test,y_pred_adb):
@@ -191,13 +189,67 @@ def model_evaluation_rdg(y_test,y_pred_rdg):
     print("Mean Squared Error (MSE): {}".format(mse(y_test, y_pred_rdg)))
     print("Root Mean Squared Error (RMSE): {}".format(np.sqrt(mse(y_test, y_pred_rdg))))
 
+''' Model trained on the data from IPL Seasons 1 to 9 ie: (2008 to 2016)
+ Model tested on data from IPL Season 10 ie: (2017)'''
+
+
+
+def predict_score(batting_team, bowling_team,
+                    overs, runs, wickets, runs_in_prev_5, wickets_in_prev_5):
+  temp_array = list()
+
+  # Batting Team
+  if batting_team == 'Chennai Super Kings':
+    temp_array = temp_array + [1,0,0,0,0,0,0,0]
+  elif batting_team == 'Delhi Daredevils':
+    temp_array = temp_array + [0,1,0,0,0,0,0,0]
+  elif batting_team == 'Kings XI Punjab':
+    temp_array = temp_array + [0,0,1,0,0,0,0,0]
+  elif batting_team == 'Kolkata Knight Riders':
+    temp_array = temp_array + [0,0,0,1,0,0,0,0]
+  elif batting_team == 'Mumbai Indians':
+    temp_array = temp_array + [0,0,0,0,1,0,0,0]
+  elif batting_team == 'Rajasthan Royals':
+    temp_array = temp_array + [0,0,0,0,0,1,0,0]
+  elif batting_team == 'Royal Challengers Bangalore':
+    temp_array = temp_array + [0,0,0,0,0,0,1,0]
+  elif batting_team == 'Sunrisers Hyderabad':
+    temp_array = temp_array + [0,0,0,0,0,0,0,1]
+
+  # Bowling Team
+  if bowling_team == 'Chennai Super Kings':
+    temp_array = temp_array + [1,0,0,0,0,0,0,0]
+  elif bowling_team == 'Delhi Daredevils':
+    temp_array = temp_array + [0,1,0,0,0,0,0,0]
+  elif bowling_team == 'Kings XI Punjab':
+    temp_array = temp_array + [0,0,1,0,0,0,0,0]
+  elif bowling_team == 'Kolkata Knight Riders':
+    temp_array = temp_array + [0,0,0,1,0,0,0,0]
+  elif bowling_team == 'Mumbai Indians':
+    temp_array = temp_array + [0,0,0,0,1,0,0,0]
+  elif bowling_team == 'Rajasthan Royals':
+    temp_array = temp_array + [0,0,0,0,0,1,0,0]
+  elif bowling_team == 'Royal Challengers Bangalore':
+    temp_array = temp_array + [0,0,0,0,0,0,1,0]
+  elif bowling_team == 'Sunrisers Hyderabad':
+    temp_array = temp_array + [0,0,0,0,0,0,0,1]
+
+  # Overs, Runs, Wickets, Runs_in_prev_5, Wickets_in_prev_5
+  temp_array = temp_array + [overs, runs, wickets, runs_in_prev_5, wickets_in_prev_5]
+
+  # Converting into numpy array
+  temp_array = np.array([temp_array])
+
+  # Prediction
+  return int(linear_regressor.predict(temp_array)[0])
 
 def plot_graph(y_pred,y_pred_dt,y_pred_rf,y_pred_adb,y_pred_rdg):
+    ''' visulising the result using distplot'''
     plots = [y_pred,y_pred_dt,y_pred_rf,y_pred_adb,y_pred_rdg]
     titles = ['linear','decision','random_forest','AdaBoost','Ridge regression']
     plt.figure(figsize=(16,9))
     sns.set()
-    for i in range(6):
+    for i in range(len(plots)):
         plt.subplot(2,3,i+1),sns.distplot(plots[i])
         plt.title(titles[i])
         plt.xticks([]),plt.yticks([])
@@ -224,27 +276,32 @@ if __name__ == "__main__":
 
     x_train,x_test,y_train,y_test = splitting_train_test(df)
     print("Training set: {} and Test set: {}".format(x_train.shape, x_test.shape))
+  
+    print('------------------- Linear Regression -------------')
 
-
-    y_pred=linear_regressor_model(x_train,y_train,x_test)
+    y_pred = linear_regressor_model(x_train,y_train,x_test)
 
     model_evaluation(y_test,y_pred)
 
-
+    print('------------------- Decision Tree Regression -------------')
 
     y_pred_dt = decision_tree(x_train,y_train,x_test)
 
     model_evaluation_dt(y_test,y_pred_dt)
 
-
+    print('------------------- Random Forest Regression -------------')
 
     y_pred_rf = random_forest_regression(x_train,y_train,x_test)
 
     model_evaluation_rf(y_test,y_pred_rf)
 
+    print('------------------- AdaBoost --------------')
+
     y_pred_adb=adaboost(x_train,y_train,x_test)
 
     model_evaluation_adb(y_test,y_pred_adb)
+
+    print('------------------- Ridge Regression -------------')
 
     y_pred_rdg = ridge_regression(x_train,y_train,x_test)  
 
@@ -252,7 +309,20 @@ if __name__ == "__main__":
             
 
     plot_graph(y_pred,y_pred_dt,y_pred_rf,y_pred_adb,y_pred_rdg)
+  
+    ''' After getting the  graph and the errors of  the various model we have observed that the liner regression 
+    and adaptive boosting are giving best results among all the models so we use linear regression for predicting scores'''
 
+    print('----------prediction----------')
 
+    linear_regressor.fit(x_train,y_train)
 
+    # predicting result
+    y_pred = linear_regressor.predict(x_test)
 
+    
+
+    output = predict_score(batting_team='Royal Challengers Bangalore', bowling_team='Mumbai Indians',
+                    overs=16.1, runs=98, wickets=8, runs_in_prev_5=30, wickets_in_prev_5=4)
+
+    print('the predicted score for first inning is {}'.format(output))
